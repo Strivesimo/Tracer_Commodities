@@ -87,6 +87,20 @@ st.title("Percentage of Facilities with 80% Tracer Commodities per district")
 st.write(data5)
 st.download_button("Download", data55, "Percentage of facilities per district.csv","txt/csv")
 
+data6 =data5
+data6.drop(columns = ["Province Name","Percentage_of_Facilities_with_80_percent_Tracer_Commodities_per_District","Total_Facilities"], inplace = True)
+data6 = data5.set_index(["District Name"])
+
+#ax = data6.plot.bar(color = ['blue'], title = "Number of Facilities per District", figsize =(25,5))
+#ax.bar_label(ax.containers[0])
+#plt.show()
+st.title("Number of Facilities per District")
+#fig, ax = plt.subplots(figsize = (25,5))
+#ax.barh()
+#st.pyplot(data6.plot.barh().figure)
+st.bar_chart(data6)
+
+
 
 data4 = data1.loc[data1.ID.isin(data3.ID.values)]
 
