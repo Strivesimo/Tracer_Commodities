@@ -42,70 +42,78 @@ data["District Name"].replace({"Umzingwane": "MZINGWANE", "Murehwa": "MUREWA", "
                                }, inplace = True)
 
                                
-data = data[["Province Name", "District Name","Facility Name", "Product Name","MOS","AMC", "Ending Balance"]]
+data1 = data[["Province Name", "District Name","Facility Name", "Product Name","MOS","AMC", "Ending Balance"]]
+
+data2 = data1[~data1["Facility Name"].str.startswith('CBD')]
+data2 = data2[~data2["Facility Name"].str.startswith('cbd')]
+data3 = data2[~data2["Facility Name"].str.startswith('GL ')]
+data3 = data3[~data3["Facility Name"].str.startswith('G/L ')]
+
+unique_fac = data3.groupby(["Province Name","District Name"])["Facility Name"].nunique().reset_index()
 
 
 #Filtering out Tracer Commodities
-data = data.loc[(data["Product Name"].isin(["Tenofovir/Lamivudine/Dolu300/300/50mg(30Tabs)","Tenofovir/Lamivudine/Dolu300/300/50mg (90Tabs)",
+data4 = data3.loc[(data3["Product Name"].isin(["Tenofovir/Lamivudine/Dolu300/300/50mg(30Tabs)","Tenofovir/Lamivudine/Dolu300/300/50mg (90Tabs)",
 "Artemether - 4X6","Male Condoms","Control Pill","Amoxycilin 250mg disp tabs","Amoxycilin 250mg Caps","Ferrous + folic 60+0.4mg tab","Paracetamol 500mg Tabs",
 "ORS+Zinc tabs","Lignocaine Hcl plain  2%","RUTF","Abacavir 120mg +Lamivudine 60mg tablets","Latex Gloves (Medium)","Surgical Face Masks","Oxytocin 10 IU/ml", "Ceftriaxone 250mg",
 "Penicillin benzathine.    1.44g=2 4MU","RHZE 150/75/400/275mg tablet","Determine","Rapid Malaria Diagnostic Test (Pf)","Rapid Diagnostic Test PF/PAN"]))]
 
+
 #Renaming TLD and RDT
-data = data.replace({"Product Name": {"Tenofovir/Lamivudine/Dolu300/300/50mg(30Tabs)": 'TLD', "Tenofovir/Lamivudine/Dolu300/300/50mg (90Tabs)" :'TLD',
+data4 = data4.replace({"Product Name": {"Tenofovir/Lamivudine/Dolu300/300/50mg(30Tabs)": 'TLD', "Tenofovir/Lamivudine/Dolu300/300/50mg (90Tabs)" :'TLD',
                                      "Rapid Malaria Diagnostic Test (Pf)" : "RDT", "Rapid Diagnostic Test PF/PAN" : "RDT"}})
 
-data = data.groupby(["Province Name", "District Name","Facility Name", "Product Name"])[["Ending Balance", "AMC"]].sum().reset_index()
 
-data = data.assign(Calculated_MOS = np.where(data["AMC"] == 0, 999, data['Ending Balance']/data["AMC"])) 
 
-threshhold = int(len(data["Product Name"].unique())*0.8)
+data5 =data4.groupby(["Province Name", "District Name","Facility Name", "Product Name"])[["Ending Balance", "AMC"]].sum().reset_index()
 
-data1 = data.loc[data.Calculated_MOS >= 3]
+data6 = data5.assign(Calculated_MOS = np.where((data5["AMC"] == 0) & (data5['Ending Balance']>0) , 999, data5['Ending Balance']/data5["AMC"])) 
 
-#data1.groupby(["District Name","Facility Name"])["Product Name"].unique()
+threshhold = int(len(data6["Product Name"].unique())*0.8)
 
-data2 = data1.groupby(["Province Name", "District Name","Facility Name"])["Product Name"].nunique().reset_index()
+data7 = data6.loc[data6.Calculated_MOS >= 3]
 
-data3 = data2.loc[data2["Product Name"]>= threshhold]
+data8 = data7.groupby(["Province Name","District Name","Facility Name"])["Product Name"].nunique().reset_index()
 
-data3 = data3.assign(ID = data3["District Name"]+"-"+data3["Facility Name"])
+data9 = data8.loc[data8["Product Name"]>= threshhold]
 
-data1 = data1.assign(ID = data1["District Name"]+"-"+data1["Facility Name"])
+data10 = data9.assign(ID = data9["District Name"]+"-"+data9["Facility Name"])
 
+data11 = data6.assign(ID = data6["District Name"]+"-"+data6["Facility Name"])
+
+percentage = round(data10.ID.nunique()/data11.ID.nunique()*100,2)
 st.title("Percentage of Facilities with 80% Tracer Commodities with MOS greater or equal to 3 months")
-percentage = round(data3.ID.nunique()/data1.ID.nunique()*100,2)
 st.write(percentage)
 
+data12 = data11.loc[data11.ID.isin(data10.ID.values)]
 
-data5 = data3.groupby(["Province Name","District Name"])["Facility Name"].nunique().reset_index()
-data5 = data5.assign(Total_Facilities = data["Facility Name"].nunique())
-data5 = data5.assign(Percentage_of_Facilities_with_80_percent_Tracer_Commodities_per_District = round((data5["Facility Name"]/data5["Total_Facilities"])*100,2))
-data5.rename(columns = {"Facility Name" : "Number of Facilities with 80% Tracer Commodities"}, inplace = True)
-data55 = convert_df(data5)
-st.title("Percentage of Facilities with 80% Tracer Commodities per district")
-st.write(data5)
+data12 = data12[["Province Name","District Name","Facility Name","Product Name","Ending Balance","AMC","Calculated_MOS"]]
+
+data13 = data12.groupby(["Province Name","District Name"])["Facility Name"].nunique().reset_index()
+
+merged_table = pd.merge(data13, unique_fac, on = "District Name" )
+merged_table.drop(columns = "Province Name_y", inplace = True)
+merged_table = merged_table.rename(columns ={"Province Name_x" : "Province Name", "Facility Name_x":"Facilities_with_80_percent", "Facility Name_y" : "Total_Facilities"})
+
+data14 = merged_table.assign(Percentage_of_Facilities = round((merged_table["Facilities_with_80_percent"]/merged_table["Total_Facilities"])*100,2))
+data55 = convert_df(data14)
+st.title("Percentage of Facilities with 80% Tracer Commodities per District")
+st.write(data14)
 st.download_button("Download", data55, "Percentage of facilities per district.csv","txt/csv")
 
-data6 =data5
-data6.drop(columns = ["Province Name","Percentage_of_Facilities_with_80_percent_Tracer_Commodities_per_District","Total_Facilities"], inplace = True)
-data6 = data5.set_index(["District Name"])
-
-#ax = data6.plot.bar(color = ['blue'], title = "Number of Facilities per District", figsize =(25,5))
-#ax.bar_label(ax.containers[0])
-#plt.show()
+data15 = data14
+data15.drop(columns = ["Province Name","Percentage_of_Facilities"], inplace = True)
+data15 = data15.set_index(["District Name"])
 st.title("Number of Facilities per District")
-#fig, ax = plt.subplots(figsize = (25,5))
-#ax.barh()
-#st.pyplot(data6.plot.barh().figure)
-st.bar_chart(data6)
+st.bar_chart(data15)
 
+#st.title("Percentage of Facilities with 80% Tracer Commodities per District Chart")
+#data16 = data14
+#data16 = data16[["District Name","Percentage_of_Facilities"]]
+#data16 = data16.set_index(["District Name"])
+#st.line_chart(data16)
 
-
-data4 = data1.loc[data1.ID.isin(data3.ID.values)]
-
-data4 = data4[["Province Name","District Name"	,"Facility Name","Product Name","Ending Balance","AMC","Calculated_MOS"]]
-data44 = convert_df(data4)
+data44 = convert_df(data12)
 st.title("Facilities with 80% Tracer Commodities with MOS greater or equal to 3 months")
-st.write(data4)
+st.write(data12)
 st.download_button("Download", data44, "Faclities_with_MOS>=3.csv","txt/csv")
