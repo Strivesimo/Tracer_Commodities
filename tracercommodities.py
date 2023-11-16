@@ -4,9 +4,9 @@ import matplotlib.pyplot as plt
 import streamlit as st
 
 st.set_page_config(page_title="Tracer Commodities Stock Status")
-st.title("Tracer Commodities Stock Status")
+st.title(":blue[Tracer Commodities Stock Status]")
 
-upload_file = st.file_uploader("Select your Dataset")
+upload_file = st.file_uploader(":red[**Select your Dataset**]")
 if upload_file is not None:
     data = pd.read_excel(upload_file)
     #st.write(data)
@@ -82,8 +82,12 @@ data10 = data9.assign(ID = data9["District Name"]+"-"+data9["Facility Name"])
 data11 = data6.assign(ID = data6["District Name"]+"-"+data6["Facility Name"])
 
 percentage = round(data10.ID.nunique()/data11.ID.nunique()*100,2)
-st.title("Percentage of Facilities with 80% Tracer Commodities with MOS greater or equal to 3 months")
-st.write(percentage)
+st.subheader('Percentage of Facilities with 80% Tracer Commodities with MOS greater or equal to 3 months' )
+st.title(percentage)
+
+total_facilities = data10.ID.nunique()
+st.subheader('Number of Facilities with 80% Tracer Commodities with MOS greater or equal to 3 months')
+st.title(total_facilities)
 
 data12 = data11.loc[data11.ID.isin(data10.ID.values)]
 
@@ -97,7 +101,7 @@ merged_table = merged_table.rename(columns ={"Province Name_x" : "Province Name"
 
 data14 = merged_table.assign(Percentage_of_Facilities = round((merged_table["Facilities_with_80_percent"]/merged_table["Total_Facilities"])*100,2))
 data55 = convert_df(data14)
-st.title("Percentage of Facilities with 80% Tracer Commodities per District")
+st.subheader("Percentage of Facilities with 80% Tracer Commodities per District")
 st.write(data14)
 st.download_button("Download", data55, "Percentage of facilities per district.csv","txt/csv")
 
@@ -107,6 +111,14 @@ data15 = data15.set_index(["District Name"])
 st.title("Number of Facilities per District")
 st.bar_chart(data15)
 
+products = data12.loc[data12.Calculated_MOS >=3]
+products = products.assign(ID = products["District Name"]+"-"+products["Facility Name"])
+products1 = products.groupby(["Product Name"])["ID"].nunique().reset_index()
+products1 = products1.rename(columns = {"ID" : "Total_Facilities"})
+products1 = products1.set_index(["Product Name"])
+st.title("Number of Facilities with a product")
+st.bar_chart(products1)
+
 #st.title("Percentage of Facilities with 80% Tracer Commodities per District Chart")
 #data16 = data14
 #data16 = data16[["District Name","Percentage_of_Facilities"]]
@@ -114,6 +126,6 @@ st.bar_chart(data15)
 #st.line_chart(data16)
 
 data44 = convert_df(data12)
-st.title("Facilities with 80% Tracer Commodities with MOS greater or equal to 3 months")
+st.subheader("Facilities with 80% Tracer Commodities with MOS greater or equal to 3 months")
 st.write(data12)
 st.download_button("Download", data44, "Faclities_with_MOS>=3.csv","txt/csv")
