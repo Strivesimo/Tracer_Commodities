@@ -68,8 +68,16 @@ data4 = data4.replace({"Product Name": {"Tenofovir/Lamivudine/Dolu300/300/50mg(3
 data5 =data4.groupby(["Province Name", "District Name","Facility Name", "Product Name"])[["Ending Balance", "AMC"]].sum().reset_index()
 
 data6 = data5.assign(Calculated_MOS = np.where((data5["AMC"] == 0) & (data5['Ending Balance']>0) , 999, data5['Ending Balance']/data5["AMC"])) 
+data6 = data6.assign(ID = data6["District Name"]+"-"+data6["Facility Name"])
 
 threshhold = int(len(data6["Product Name"].unique())*0.8)
+
+unique_fac = data6.groupby(["Province Name","District Name","Facility Name"])["Product Name"].nunique().reset_index()
+unique_fac = unique_fac.loc[unique_fac["Product Name"] >= threshhold]
+unique_fac = unique_fac.groupby(["Province Name","District Name"])["Facility Name"].nunique().reset_index()
+
+data66 = data6.groupby(["Province Name","District Name","Facility Name"])["Product Name"].nunique().reset_index()
+data66 = data66.loc[data66["Product Name"] >= threshhold]
 
 data7 = data6.loc[data6.Calculated_MOS >= 3]
 
@@ -79,7 +87,7 @@ data9 = data8.loc[data8["Product Name"]>= threshhold]
 
 data10 = data9.assign(ID = data9["District Name"]+"-"+data9["Facility Name"])
 
-data11 = data6.assign(ID = data6["District Name"]+"-"+data6["Facility Name"])
+data11 = data66.assign(ID = data66["District Name"]+"-"+data66["Facility Name"])
 
 percentage = round(data10.ID.nunique()/data11.ID.nunique()*100,2)
 st.subheader('Percentage of Facilities with 80% Tracer Commodities with MOS greater or equal to 3 months' )
@@ -89,7 +97,7 @@ total_facilities = data10.ID.nunique()
 st.subheader('Number of Facilities with 80% Tracer Commodities with MOS greater or equal to 3 months')
 st.title(total_facilities)
 
-data12 = data11.loc[data11.ID.isin(data10.ID.values)]
+data12 = data6.loc[data6.ID.isin(data10.ID.values)]
 
 data12 = data12[["Province Name","District Name","Facility Name","Product Name","Ending Balance","AMC","Calculated_MOS"]]
 
@@ -111,13 +119,19 @@ data15 = data15.set_index(["District Name"])
 st.title("Number of Facilities per District")
 st.bar_chart(data15)
 
-products = data12.loc[data12.Calculated_MOS >=3]
-products = products.assign(ID = products["District Name"]+"-"+products["Facility Name"])
-products1 = products.groupby(["Product Name"])["ID"].nunique().reset_index()
-products1 = products1.rename(columns = {"ID" : "Total_Facilities"})
-products1 = products1.set_index(["Product Name"])
-st.title("Number of Facilities with a product")
-st.bar_chart(products1)
+ax = data15.plot.bar(color = ['blue',"red"], title = "Number of Facilities per District", figsize =(25,5))
+ax.bar_label(ax.containers[0])
+#st.write(ax)
+plt.show()
+
+
+#products = data12.loc[data12.Calculated_MOS >=3]
+#products = products.assign(ID = products["District Name"]+"-"+products["Facility Name"])
+#products1 = products.groupby(["Product Name"])["ID"].nunique().reset_index()
+#products1 = products1.rename(columns = {"ID" : "Total_Facilities"})
+#products1 = products1.set_index(["Product Name"])
+#st.title("Number of Facilities with a product")
+#st.bar_chart(products1)
 
 #st.title("Percentage of Facilities with 80% Tracer Commodities per District Chart")
 #data16 = data14
