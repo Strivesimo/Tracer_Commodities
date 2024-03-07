@@ -5,7 +5,7 @@ import streamlit as st
 import plotly.express as px
 
 st.set_page_config(page_title="Tracer Commodities Stock Status", layout = "wide")
-st.title(":blue[Tracer Commodities Stock Status]")
+st.title(":blue[Tracer Commodities Stock Status - MOS]")
 
 upload_file = st.file_uploader(":red[**Select your Dataset**]")
 if upload_file is not None:
@@ -25,7 +25,7 @@ data = data.loc[:, data.columns.notna()]
 data.dropna(axis = 0, how = "all", inplace = True)
 
 #Changing Data Types
-data[['AMC', 'Ending Balance', 'MOS']] = data[['AMC', 'Ending Balance', 'MOS']].astype(np.int64)
+data[['AMC', 'Ending Balance', 'MOS','Ordered Units']] = data[['AMC', 'Ending Balance', 'MOS','Ordered Units']].astype(np.int64)
 
 #Renaming Districts
 data["District Name"].replace({"Umzingwane": "MZINGWANE", "Murehwa": "MUREWA", "Mt DARWIN   ": "Mt DARWIN","Mount\xa0Darwin": "Mt DARWIN",
@@ -43,7 +43,7 @@ data["District Name"].replace({"Umzingwane": "MZINGWANE", "Murehwa": "MUREWA", "
                                }, inplace = True)
 
                                
-data1 = data[["Province Name", "District Name","Facility Name", "Product Name","MOS","AMC", "Ending Balance"]]
+data1 = data[["Province Name", "District Name","Facility Name", "Product Name","MOS","AMC", "Ending Balance", "Ordered Units", "Stock Delivered"]]
 
 data2 = data1[~data1["Facility Name"].str.startswith('CBD')]
 data2 = data2[~data2["Facility Name"].str.startswith('cbd')]
@@ -68,9 +68,10 @@ data4 = data4.replace({"Product Name": {"Tenofovir/Lamivudine/Dolu300/300/50mg(3
 
 
 
-data5 =data4.groupby(["Province Name", "District Name","Facility Name", "Product Name"])[["Ending Balance", "AMC"]].sum().reset_index()
+data5 =data4.groupby(["Province Name", "District Name","Facility Name", "Product Name"])[["Ending Balance", "AMC", "Ordered Units","Stock Delivered"]].sum().reset_index()
 
 data6 = data5.assign(Calculated_MOS = np.where(((data5["AMC"] == 0) & (data5['Ending Balance']>0)) | ((data5["AMC"] == 0) & (data5['Ending Balance']==0)) , 999, data5['Ending Balance']/data5["AMC"])) 
+data6 = data6.assign(Order_Fill_Rate=np.where(((data6["Stock Delivered"]==0) & (data6["Ordered Units"]== 0)) | ((data6["Stock Delivered"]>0) & (data6["Ordered Units"]== 0)),999, data6["Stock Delivered"]/data6["Ordered Units"]))
 data6 = data6.assign(ID = data6["District Name"]+"-"+data6["Facility Name"])
 
 dataa1 =data6.groupby(["Province Name", "District Name","Facility Name"])["Product Name"].size()*0.8
@@ -109,9 +110,9 @@ merged_table = merged_table.rename(columns ={"Province Name_x" : "Province Name"
 
 dataa7 = merged_table.assign(Percentage_of_Facilities = round((merged_table["Facilities_with_80_percent"]/merged_table["Total_Reported_Facilities"])*100,2))
 data55 = convert_df(dataa7)
-st.subheader(":green[Percentage of Facilities with 80% Tracer Commodities per District]")
+st.subheader(":green[Percentage of Facilities with 80% Tracer Commodities per District - MOS]")
 st.write(dataa7)
-st.download_button("Download", data55, "Percentage of facilities per district.csv","txt/csv")
+st.download_button("Download", data55, "Percentage of facilities per district - MOS.csv","txt/csv")
 
 dataa8 = dataa7
 dataa8.drop(columns = ["Province Name","Facilities_with_80_percent","Total_Reported_Facilities"], inplace = True)
@@ -124,3 +125,49 @@ dataa9 = convert_df(dataa6)
 st.subheader(":red[Facilities with 80% Tracer Commodities with MOS greater or equal to 3 months]")
 st.write(dataa6)
 st.download_button("Download", dataa9, "Faclities_with_MOS>=3.csv","txt/csv")
+
+#OFR
+st.title(":blue[Tracer Commodities Stock Status - OFR]")
+data77 = data6.loc[data6.Order_Fill_Rate >= 0.6]
+
+data88 = data77.groupby(["Province Name","District Name","Facility Name"])["Product Name"].nunique().reset_index()
+
+data99 = data88.loc[data88["Product Name"]>= 16]
+
+data100 = data99.assign(ID = data99["District Name"]+"-"+data99["Facility Name"])
+
+data122 = data6.loc[data6.ID.isin(data100.ID.values)]
+data122.drop(columns = "ID", inplace = True)
+
+percentage_ofr = round(data100.ID.nunique()/data6.ID.nunique()*100,2)
+st.subheader(':red[Percentage of Facilities with at least 16/20 (80%) Tracer Commodities with OFR greater or equal to 60%]' )
+st.title(f"{percentage_ofr} %")
+
+total_facilities_ofr = data100.ID.nunique()
+st.subheader(':blue[Number of Facilities with at least 16/20 (80%) Tracer Commodities with OFR greater or equal to 60%]')
+st.title(total_facilities_ofr)
+
+data133 = data122.groupby(["Province Name","District Name"])["Facility Name"].nunique().reset_index()
+
+facilities_80_percent_ofr = data3.groupby(["Province Name","District Name"])["Facility Name"].nunique().reset_index()
+
+merged_table_ofr = pd.merge(data133, facilities_80_percent_ofr, on = "District Name" )
+merged_table_ofr.drop(columns = "Province Name_y", inplace = True)
+merged_table_ofr =merged_table_ofr.rename(columns ={"Province Name_x" : "Province Name", "Facility Name_x":"Facilities_with_60_percent_OFR", "Facility Name_y" : "Total_Facilities"})
+
+data144 = merged_table_ofr.assign(Percentage_of_Facilities = round((merged_table_ofr["Facilities_with_60_percent_OFR"]/merged_table_ofr["Total_Facilities"])*100,2))
+data555 = convert_df(data144)
+st.subheader(":green[Percentage of Facilities with 80% Tracer Commodities per District - OFR]")
+st.write(data144)
+st.download_button("Download", data555, "Percentage of Facilities per District - OFR.csv","txt/csv")
+
+dataa88 = data144
+dataa88.drop(columns = ["Province Name","Facilities_with_60_percent_OFR","Total_Facilities"], inplace = True)
+dataa88 = dataa88.set_index(["District Name"])
+st.subheader("Percentage of Facilities with 80% Tracer Commodities with OFR greater or equal to 60%")
+st.line_chart(dataa88)
+
+dataa122 = convert_df(data122)
+st.subheader(":red[Facilities with 80% Tracer Commodities with OFR greater or equal to 60%]")
+st.write(data122)
+st.download_button("Download", dataa122, "Faclities_with_OFR>=0.60.csv","txt/csv")
