@@ -7,7 +7,7 @@ import plotly.express as px
 st.set_page_config(page_title="Tracer Commodities Stock Status", layout = "wide")
 st.title(":blue[Tracer Commodities Stock Status - MOS]")
 
-upload_file = st.file_uploader(":red[**Select your Dataset**]")
+upload_file = st.file_uploader(":red[**Select your Dataset - (DON'T REMOVE TOP 5 BLANK ROWS)**]")
 if upload_file is not None:
     data = pd.read_excel(upload_file)
     #st.write(data)
@@ -18,9 +18,9 @@ else:
 def convert_df(df):
     return df.to_csv().encode("utf-8")
 
-#data.drop(data.index[:4], inplace = True)
-#data.rename(columns=data.iloc[0], inplace = True)
-#data.drop([4], axis = 0, inplace = True)
+data.drop(data.index[:4], inplace = True)
+data.rename(columns=data.iloc[0], inplace = True)
+data.drop([4], axis = 0, inplace = True)
 data = data.loc[:, data.columns.notna()]
 data.dropna(axis = 0, how = "all", inplace = True)
 
@@ -171,3 +171,4 @@ dataa122 = convert_df(data122)
 st.subheader(":red[Facilities with 80% Tracer Commodities with OFR greater or equal to 60%]")
 st.write(data122)
 st.download_button("Download", dataa122, "Faclities_with_OFR>=0.60.csv","txt/csv")
+
