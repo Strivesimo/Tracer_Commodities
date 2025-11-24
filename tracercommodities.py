@@ -25,7 +25,7 @@ data = data.loc[:, data.columns.notna()]
 data.dropna(axis = 0, how = "all", inplace = True)
 
 #Changing Data Types
-data[['AMC', 'Ending Balance', 'MOS','Ordered Units']] = data[['AMC', 'Ending Balance', 'MOS','Ordered Units']].astype(np.int64)
+data[['AMC', 'Ending Balance', 'MOS','Ordered Units','Stock Delivered']] = data[['AMC', 'Ending Balance', 'MOS','Ordered Units','Stock Delivered']].astype(np.int64)
 
 #Renaming Districts
 data["District Name"].replace({"Umzingwane": "MZINGWANE", "Murehwa": "MUREWA", "Mt DARWIN   ": "Mt DARWIN","Mount\xa0Darwin": "Mt DARWIN",
@@ -171,5 +171,6 @@ dataa122 = convert_df(data122)
 st.subheader(":red[Facilities with 80% Tracer Commodities with OFR greater or equal to 60%]")
 st.write(data122)
 st.download_button("Download", dataa122, "Faclities_with_OFR>=0.60.csv","txt/csv")
+
 
 
