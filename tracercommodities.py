@@ -193,51 +193,52 @@ st.download_button("Download", dataa9, "Faclities_with_MOS>=3.csv","txt/csv")
 
 ############################################################################################################################################################################################################
 #OFR
-'''
-st.title(":blue[Tracer Commodities Stock Status - OFR]")
-data77 = data6.loc[data6.Order_Fill_Rate >= 0.6]
 
-data88 = data77.groupby(["Province Name","District Name","Facility Name"])["Product Name"].nunique().reset_index()
+#st.title(":blue[Tracer Commodities Stock Status - OFR]")
+#data77 = data6.loc[data6.Order_Fill_Rate >= 0.6]
 
-data99 = data88.loc[data88["Product Name"]>= 16]
+#data88 = data77.groupby(["Province Name","District Name","Facility Name"])["Product Name"].nunique().reset_index()
 
-data100 = data99.assign(ID = data99["District Name"]+"-"+data99["Facility Name"])
+#data99 = data88.loc[data88["Product Name"]>= 16]
 
-data122 = data6.loc[data6.ID.isin(data100.ID.values)]
-data122.drop(columns = "ID", inplace = True)
+#data100 = data99.assign(ID = data99["District Name"]+"-"+data99["Facility Name"])
 
-percentage_ofr = round(data100.ID.nunique()/data6.ID.nunique()*100,2)
-st.subheader(':red[Percentage of Facilities with at least 16/20 (80%) Tracer Commodities with OFR greater or equal to 60%]' )
-st.title(f"{percentage_ofr} %")
+#data122 = data6.loc[data6.ID.isin(data100.ID.values)]
+#data122.drop(columns = "ID", inplace = True)
 
-total_facilities_ofr = data100.ID.nunique()
-st.subheader(':blue[Number of Facilities with at least 16/20 (80%) Tracer Commodities with OFR greater or equal to 60%]')
-st.title(total_facilities_ofr)
+#percentage_ofr = round(data100.ID.nunique()/data6.ID.nunique()*100,2)
+#st.subheader(':red[Percentage of Facilities with at least 16/20 (80%) Tracer Commodities with OFR greater or equal to 60%]' )
+#st.title(f"{percentage_ofr} %")
 
-data133 = data122.groupby(["Province Name","District Name"])["Facility Name"].nunique().reset_index()
+#total_facilities_ofr = data100.ID.nunique()
+#st.subheader(':blue[Number of Facilities with at least 16/20 (80%) Tracer Commodities with OFR greater or equal to 60%]')
+#st.title(total_facilities_ofr)
 
-facilities_80_percent_ofr = data3.groupby(["Province Name","District Name"])["Facility Name"].nunique().reset_index()
+#data133 = data122.groupby(["Province Name","District Name"])["Facility Name"].nunique().reset_index()
 
-merged_table_ofr = pd.merge(data133, facilities_80_percent_ofr, on = "District Name" )
-merged_table_ofr.drop(columns = "Province Name_y", inplace = True)
-merged_table_ofr =merged_table_ofr.rename(columns ={"Province Name_x" : "Province Name", "Facility Name_x":"Facilities_with_60_percent_OFR", "Facility Name_y" : "Total_Facilities"})
+#facilities_80_percent_ofr = data3.groupby(["Province Name","District Name"])["Facility Name"].nunique().reset_index()
 
-data144 = merged_table_ofr.assign(Percentage_of_Facilities = round((merged_table_ofr["Facilities_with_60_percent_OFR"]/merged_table_ofr["Total_Facilities"])*100,2))
-data555 = convert_df(data144)
-st.subheader(":green[Percentage of Facilities with 80% Tracer Commodities per District - OFR]")
-st.write(data144)
-st.download_button("Download", data555, "Percentage of Facilities per District - OFR.csv","txt/csv")
+#merged_table_ofr = pd.merge(data133, facilities_80_percent_ofr, on = "District Name" )
+#merged_table_ofr.drop(columns = "Province Name_y", inplace = True)
+#merged_table_ofr =merged_table_ofr.rename(columns ={"Province Name_x" : "Province Name", "Facility Name_x":"Facilities_with_60_percent_OFR", "Facility Name_y" : "Total_Facilities"})
 
-dataa88 = data144
-dataa88.drop(columns = ["Province Name","Facilities_with_60_percent_OFR","Total_Facilities"], inplace = True)
-dataa88 = dataa88.set_index(["District Name"])
-st.subheader("Percentage of Facilities with 80% Tracer Commodities with OFR greater or equal to 60%")
-st.line_chart(dataa88)
+#data144 = merged_table_ofr.assign(Percentage_of_Facilities = round((merged_table_ofr["Facilities_with_60_percent_OFR"]/merged_table_ofr["Total_Facilities"])*100,2))
+#data555 = convert_df(data144)
+#st.subheader(":green[Percentage of Facilities with 80% Tracer Commodities per District - OFR]")
+#st.write(data144)
+#st.download_button("Download", data555, "Percentage of Facilities per District - OFR.csv","txt/csv")
 
-dataa122 = convert_df(data122)
-st.subheader(":red[Facilities with 80% Tracer Commodities with OFR greater or equal to 60%]")
-st.write(data122)
-st.download_button("Download", dataa122, "Faclities_with_OFR>=0.60.csv","txt/csv")
-'''
+#dataa88 = data144
+#dataa88.drop(columns = ["Province Name","Facilities_with_60_percent_OFR","Total_Facilities"], inplace = True)
+#dataa88 = dataa88.set_index(["District Name"])
+#st.subheader("Percentage of Facilities with 80% Tracer Commodities with OFR greater or equal to 60%")
+#st.line_chart(dataa88)
+
+#dataa122 = convert_df(data122)
+#st.subheader(":red[Facilities with 80% Tracer Commodities with OFR greater or equal to 60%]")
+#st.write(data122)
+#st.download_button("Download", dataa122, "Faclities_with_OFR>=0.60.csv","txt/csv")
+
+
 
 
