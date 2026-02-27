@@ -71,7 +71,7 @@ data4 = data4.replace({"Product Name": {"Tenofovir/Lamivudine/Dolu300/300/50mg(3
 data5 =data4.groupby(["Province Name", "District Name","Facility Name", "Product Name"])[["Ending Balance", "AMC", "Ordered Units","Stock Delivered"]].sum().reset_index()
 
 data6 = data5.assign(Calculated_MOS = np.where(((data5["AMC"] == 0) & (data5['Ending Balance']>0)) | ((data5["AMC"] == 0) & (data5['Ending Balance']==0)) , 999, data5['Ending Balance']/data5["AMC"])) 
-data6 = data6.assign(Order_Fill_Rate=np.where(((data6["Stock Delivered"]==0) & (data6["Ordered Units"]== 0)) | ((data6["Stock Delivered"]>0) & (data6["Ordered Units"]== 0)),999, data6["Stock Delivered"]/data6["Ordered Units"]))
+#data6 = data6.assign(Order_Fill_Rate=np.where(((data6["Stock Delivered"]==0) & (data6["Ordered Units"]== 0)) | ((data6["Stock Delivered"]>0) & (data6["Ordered Units"]== 0)),999, data6["Stock Delivered"]/data6["Ordered Units"]))
 data6 = data6.assign(ID = data6["District Name"]+"-"+data6["Facility Name"])
 
 dataa1 =data6.groupby(["Province Name", "District Name","Facility Name"])["Product Name"].size()*0.8
@@ -132,7 +132,7 @@ st.download_button("Download", dataa9, "Faclities_with_MOS>=3.csv","txt/csv")
 data5 =data3.groupby(["Province Name", "District Name","Facility Name", "Product Name"])[["Ending Balance", "AMC", "Ordered Units","Stock Delivered"]].sum().reset_index()
 
 data6 = data5.assign(Calculated_MOS = np.where(((data5["AMC"] == 0) & (data5['Ending Balance']>0)) | ((data5["AMC"] == 0) & (data5['Ending Balance']==0)) , 999, data5['Ending Balance']/data5["AMC"])) 
-data6 = data6.assign(Order_Fill_Rate=np.where(((data6["Stock Delivered"]==0) & (data6["Ordered Units"]== 0)) | ((data6["Stock Delivered"]>0) & (data6["Ordered Units"]== 0)),999, data6["Stock Delivered"]/data6["Ordered Units"]))
+#data6 = data6.assign(Order_Fill_Rate=np.where(((data6["Stock Delivered"]==0) & (data6["Ordered Units"]== 0)) | ((data6["Stock Delivered"]>0) & (data6["Ordered Units"]== 0)),999, data6["Stock Delivered"]/data6["Ordered Units"]))
 data6 = data6.assign(ID = data6["District Name"]+"-"+data6["Facility Name"])
 
 dataa1 =data6.groupby(["Province Name", "District Name","Facility Name"])["Product Name"].size()*0.8
@@ -193,6 +193,7 @@ st.download_button("Download", dataa9, "Faclities_with_MOS>=3.csv","txt/csv")
 
 ############################################################################################################################################################################################################
 #OFR
+'''
 st.title(":blue[Tracer Commodities Stock Status - OFR]")
 data77 = data6.loc[data6.Order_Fill_Rate >= 0.6]
 
@@ -237,5 +238,6 @@ dataa122 = convert_df(data122)
 st.subheader(":red[Facilities with 80% Tracer Commodities with OFR greater or equal to 60%]")
 st.write(data122)
 st.download_button("Download", dataa122, "Faclities_with_OFR>=0.60.csv","txt/csv")
+'''
 
 
